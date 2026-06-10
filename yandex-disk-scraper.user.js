@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yandex Disk Scraper
 // @namespace    http://tampermonkey.net/
-// @version      2026-06-10
+// @version      2026.6.10
 // @description  Downloads undownloadable files from Yandex Disk
 // @author       wadrodrog
 // @match        https://docs.360.yandex.ru/*
