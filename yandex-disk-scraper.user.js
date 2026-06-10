@@ -2,7 +2,7 @@
 // @name         Yandex Disk Scraper
 // @namespace    http://tampermonkey.net/
 // @version      2026-06-10
-// @description  Downloads undownloadable PDF, video and text files from Yandex Disk
+// @description  Downloads undownloadable files from Yandex Disk
 // @author       wadrodrog
 // @match        https://docs.360.yandex.ru/*
 // @match        https://docviewer.360.yandex.ru/*
@@ -29,6 +29,7 @@
   const WATCHES = [
     { selector: '.resources-action-bar__body', onAdd: el => addButtonInActionBar(el) },
     { selector: '.slider__toolbar', onAdd: el => addButtonInSliderToolbar(el) },
+    { selector: '.header__side-left', onAdd: el => addButtonInHeader(el) },
   ];
   const THROTTLE_MS = 120; // coalesce frequent mutation batches
 
@@ -152,9 +153,7 @@
 
   // download pdf
   if (url.startsWith("https://docviewer.") && window.self === window.top) {
-    if (document.title.endsWith(".txt")) {
-      setTimeout(addDownloadTxtButton, 2000);
-    } else {
+    if (!document.title.endsWith(".txt")) {
       var info = await getFileInfo();
     	downloadPdf(info);
     }
@@ -261,6 +260,36 @@ function addStatus() {
   panel.style = "display: none; position: fixed; top: 82px; left: 15px; float: left; z-index: 999; background-color: white; border: 4px solid black; list-style: none; padding: 8px 8px 0 8px;";
   
   document.body.appendChild(panel);
+}
+
+// Appears in text files view
+function addButtonInHeader(container) {
+  console.log("[yds@addButtonInHeader]: Найдена шапка", container);
+
+  let downloadButton = document.createElement("button");
+  downloadButton.type = "button";
+  downloadButton.tabindex = 0;
+  downloadButton.setAttribute("data-react-aria-pressable", true);
+  downloadButton.className = "Orb-Button Orb-Button_size_md Orb-Button_view_neutral Orb-Button_width_max Docs-Create-Dropdown__Button";
+  downloadButton.role = "button";
+  downloadButton.setAttribute("data-testid", "orb-button");
+  downloadButton.innerHTML = '<div class="Orb-Button-Content"><span class="Orb-Button-LeftSlot"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" focusable="false" fill="none" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M2.5 8v1.9c0 1.011.002 1.664.049 2.158.045.471.12.64.172.726a1.5 1.5 0 0 0 .495.495c.085.053.255.127.726.172.494.047 1.147.049 2.158.049h3.8c1.011 0 1.664-.002 2.158-.049.471-.045.64-.12.726-.172a1.5 1.5 0 0 0 .495-.495c.053-.085.127-.255.172-.726.047-.494.049-1.147.049-2.158V8H15v1.9c0 1.964 0 2.946-.442 3.667a3 3 0 0 1-.99.99C12.845 15 11.863 15 9.9 15H6.1c-1.964 0-2.946 0-3.667-.442a3 3 0 0 1-.99-.99C1 12.845 1 11.863 1 9.9V8zm6.25.19 2.22-2.22 1.06 1.06L8 11.06 3.97 7.03l1.06-1.06 2.22 2.22V1h1.5z"></path></svg></span><span class="Orb-Button-Text"><div class="Orb-Button-Label">Скачать</div></span></div>';
+	downloadButton.style = "width: 125px; margin-left: 12px;";
+  downloadButton.addEventListener("click", downloadTextFile);
+  
+  let copyButton = document.createElement("button");
+  copyButton.type = "button";
+  copyButton.tabindex = 0;
+  copyButton.setAttribute("data-react-aria-pressable", true);
+  copyButton.className = "Orb-Button Orb-Button_size_md Orb-Button_view_neutral Orb-Button_width_max Docs-Create-Dropdown__Button";
+  copyButton.role = "button";
+  copyButton.setAttribute("data-testid", "orb-button");
+  copyButton.innerHTML = '<div class="Orb-Button-Content"><span class="Orb-Button-LeftSlot"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" focusable="false" fill="none" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M12.154 1.004A3 3 0 0 1 15 4v8l-.004.154a3 3 0 0 1-2.842 2.842L12 15H4a3 3 0 0 1-2.996-2.846L1 12V4a3 3 0 0 1 3-3h8zM4 2.5A1.5 1.5 0 0 0 2.5 4v8A1.5 1.5 0 0 0 4 13.5h8a1.5 1.5 0 0 0 1.5-1.5V4A1.5 1.5 0 0 0 12 2.5zm7.263 7.912a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5zm-.027-3.162a.75.75 0 0 1 0 1.5H4.737a.75.75 0 0 1 0-1.5zm0-3.162a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5z"></path></svg><span class="Orb-Button-Text"><div class="Orb-Button-Label">Скопировать</div></span></div>';
+	copyButton.style = "width: 150px; margin-left: 12px;";
+  copyButton.addEventListener("click", () => navigator.clipboard.writeText(parseTextContents()));
+  
+  container.appendChild(downloadButton);
+  container.appendChild(copyButton);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -432,23 +461,32 @@ function downloadPdf(info) {
   .then(() => setTimeout(window.close, 5000));
 }
 
-/* TXT downloader */
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// TXT downloader
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function addDownloadTxtButton() {
-	const buttonContainer = document.querySelector('.header__side-left');
-  const button = document.createElement("button");
+function downloadTextFile() {
+  //const titleElement = document.querySelector('[class^="titleWrapper_"]');
+  let filename = document.title; //titleElement.childNodes[0].innerText;
+  let text = parseTextContents();
   
-  button.innerText = "Скачать";
-  button.addEventListener("click", parseTxt);
-  
-  buttonContainer.appendChild(button);
+  let blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  let url = URL.createObjectURL(blob);
+
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  URL.revokeObjectURL(url);
 }
 
-function parseTxt() {
-	//const titleElement = document.querySelector('[class^="titleWrapper_"]');
+function parseTextContents() {
   const pagesElement = document.querySelector('[class^="pages_"]').childNodes[1].childNodes;
   
-  let title = document.title; //titleElement.childNodes[0].innerText;
+  let title = document.title; 
   let contents = "";
   
   for (let pageElement of pagesElement) {
@@ -461,23 +499,7 @@ function parseTxt() {
   }
   contents = contents.slice(0, -2);
   
-  downloadTxt(title, contents);
-  console.log(title);
-  console.log(contents);
-}
-
-function downloadTxt(filename, text) {
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  URL.revokeObjectURL(url);
+  return contents;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
