@@ -14,9 +14,9 @@
 https://github.com/wadrodrog/yandex-disk-scraper-userscript/raw/refs/heads/main/yandex-disk-scraper.user.js
 
 - На Firefox лучше использовать [Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey) или [Violentmonkey](https://addons.mozilla.org/firefox/addon/violentmonkey).
-- На Chromium лучше использовать [Violentmonkey](https://chromewebstore.google.com/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) (если поддерживается). Можно [Tampermonkey](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo), но с ним есть проблемы:
+- На Chromium лучше использовать [Violentmonkey](https://chromewebstore.google.com/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag), если поддерживается. Можно [Tampermonkey](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo), но с ним есть проблемы:
     - Если при установке скрипта в Tampermonkey страница не грузится, включите VPN или перезагружайте страницу несколько раз.
-    - В Chromium для Tampermonkey надо разрешить расширению пользовательские скрипты и включить режим разработчика, чтобы юзерскрипт заработал.
+    - В Chromium для Tampermonkey надо разрешить расширению пользовательские скрипты. В некоторых случаях может понадобиться включить режим разработчика.
     - С Tampermonkey почему-то медленно формируются PDF-документы.
 - На Safari пока не было протестировано, но там есть расширение [Userscripts](https://apps.apple.com/app/userscripts/id1463298887).
 - Мобильные версии браузеров не тестировались, скорее всего не будет работать.
@@ -37,7 +37,7 @@ https://github.com/wadrodrog/yandex-disk-scraper-userscript/raw/refs/heads/main/
 
 Кнопка "Скачать" находится на боковой панели при просмотре документа.
 
-![Кнопка скачивания на боковой панели под кнопкой Создать](./assets/download_button.png)
+![Кнопка скачивания на боковой панели под кнопкой Создать](./assets/pdf_download_button.png)
 
 При нажатии на кнопку открывается новая вкладка.
 Изображения всех страниц параллельно скачиваются и затем объединяются в один файл.
@@ -46,12 +46,14 @@ https://github.com/wadrodrog/yandex-disk-scraper-userscript/raw/refs/heads/main/
 Ограничения и особенности работы:
 - Страницы в PDF сохраняются как изображения. Как следствие, текст нельзя выделять и копировать. То же самое происходит и при просмотре в браузере - это ограничение со стороны Яндекса, сервер не отдаёт текст.
 - В процессе скачивания Яндекс может закидывать вас капчами. Если из-за этого скачивание не удаётся, то скрипт показывает предупреждение. При появлении капчи нужно начинать скачивание заново.
-- Процесс сохранения PDF может сильно нагружать компьютер. В Tampermonkey это происходит очень медленно. Точная причина проблемы неизвестна, вероятно из-за библиотеки jsPDF.
+- Процесс сохранения PDF может сильно нагружать компьютер. В Tampermonkey это происходит очень медленно. Точная причина проблемы неизвестна.
 - Иногда скрипт открывает новые вкладки самостоятельно, что может блокироваться браузером. Нужно разрешить всплывающие окна, если такое предложение появится в адресной строке.
 
 ### Видео
 
 Кнопка скачивания и селектор форматов появляется на верхней панели в папке или плеере.
+
+![Кнопка скачивания и селектор форматов на верхней панели в папке и плеере](./assets/video_download_button.png)
 
 Форматы определяются автоматически через незадокументированный API. По умолчанию выбирается наилучшее качество.
 
@@ -67,7 +69,9 @@ https://github.com/wadrodrog/yandex-disk-scraper-userscript/raw/refs/heads/main/
 
 ### Текстовые файлы
 
-Откройте текстовый файл, кнопка "Скачать" появится на верхней панели.
+Откройте текстовый файл, кнопки "Скачать" и "Скопировать" появятся на верхней панели.
+
+![Кнопки скачивания и копирования на верхней панели рядом с лого Яндекса](./assets/txt_download_button.png)
 
 Куски текста читаются из DOM и затем объединяются в один файл.
 
